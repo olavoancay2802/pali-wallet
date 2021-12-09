@@ -1,4 +1,5 @@
 // const { strict: assert } = require('assert');
+const { render } = require('sass');
 const { buildWebDriver } = require('../webdriver');
 // const CONSTANTS = require('../constants');
 // const { Key, By } = require('selenium-webdriver');
@@ -24,7 +25,20 @@ describe('test 1', () => {
     // await driver.clickElement('#settings-wallets');
     // await driver.findElement(`#${walletName}`);
 
-    console.log('doing something')
-
+    console.log('doing something');
   });
 });
+
+describe('test2', () => {
+  it('should appear on the console', () => {
+    console.log('It worked');
+  });
+});
+
+/*describe('first wallet test'),
+  () => {
+    it('should verify if "Pali Wallet" appear when the extension is opened'),()=> {
+      render()
+    };
+  };
+*/
