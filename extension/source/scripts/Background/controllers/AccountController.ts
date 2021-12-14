@@ -657,6 +657,7 @@ const AccountController = (actions: {
     let transactions: Transaction[] = [];
 
     if (response.transactions) {
+      console.log('response transactions', response.transactions)
       transactions = response.transactions.map(({
         txid,
         value,
@@ -675,7 +676,7 @@ const AccountController = (actions: {
             blockTime,
             tokenType,
           }
-      }).slice(0, 10);
+      }).slice(0, 20);
     }
 
     if (response.tokensAsset) {
@@ -845,7 +846,11 @@ const AccountController = (actions: {
     store.dispatch(updateSwitchNetwork(false))
   };
 
-  const isValidSYSAddress = (address: string, network: string) => {
+  const isValidSYSAddress = (address: string, network: string, verification: boolean = true) => {
+    if (!verification) {
+      return true;
+    }
+
     if (address && typeof address === 'string') {
       try {
         resAddress = bech32.decode(address);
@@ -1208,7 +1213,7 @@ const AccountController = (actions: {
 
       if (!txData) {
         console.log('Could not create transaction, not enough funds?')
-        //TODO: add error and show on the UI for user
+        
         return;
       }
 

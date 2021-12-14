@@ -61,7 +61,7 @@ declare interface IAccountController {
   getTransactionItem: () => any | null;
   getUserMintedTokens: () => any;
   isNFT: (guid: number) => boolean;
-  isValidSYSAddress: (address: string, network: string) => boolean | undefined;
+  isValidSYSAddress: (address: string, network: string, verification?: boolean) => boolean | undefined;
   issueNFT: (nft: INFTIssue) => void;
   issueSPT: (spt: ISPTIssue) => void;
   setCurrentPSBT: (psbt: any) => any;

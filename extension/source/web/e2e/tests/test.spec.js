@@ -1,3 +1,7 @@
+//import React from 'react';
+//import { render, screen } from '@testting-library/react';
+//import App from './App';
+
 // const { strict: assert } = require('assert');
 const { render } = require('sass');
 const { buildWebDriver } = require('../webdriver');
@@ -35,10 +39,11 @@ describe('test2', () => {
   });
 });
 
-/*describe('first wallet test'),
-  () => {
-    it('should verify if "Pali Wallet" appear when the extension is opened'),()=> {
-      render()
-    };
-  };
-*/
+describe('first wallet test', () => {
+  it('should verify if "Pali Wallet" appear when the extension is opened', () => {
+    //render(<App />);
+    driver.findElement(By.id('Text')).getText();
+    //expect(screen.getByText('Pali Wallet')).toBeInTheDocument();
+    console.log('Verify');
+  });
+});

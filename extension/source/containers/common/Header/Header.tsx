@@ -17,6 +17,7 @@ export const Header = ({
 }) => {
   const [generalSettingsShowed, showGeneralSettings] = useState<boolean>(false);
   const [accountSettingsShowed, showAccountSettings] = useState<boolean>(false);
+  const [networkSettingsShowed, showNetworkSettings] = useState<boolean>(false);
 
   const { encriptedMnemonic } = useStore();
 
@@ -26,6 +27,7 @@ export const Header = ({
   const handleCloseSettings = () => {
     showAccountSettings(false);
     showGeneralSettings(false);
+    showNetworkSettings(false);
   };
 
   return (
@@ -33,30 +35,34 @@ export const Header = ({
       {onlySection && (
         <Section />
       )}
-  
-      {normalHeader && (
-        <>
-          <NormalHeader
-            importSeed={importSeed}
-            generalSettingsShowed={generalSettingsShowed}
-            handleCloseSettings={handleCloseSettings}
-            showSettings={showGeneralSettings}
-            isUnlocked={isUnlocked}
-            encriptedMnemonic={encriptedMnemonic}
-          />
 
-          {accountHeader && (
-            <AccountHeader
-              encriptedMnemonic={encriptedMnemonic}
+      <div className="fixed w-full z-10">
+        {normalHeader && (
+          <>
+            <NormalHeader
               importSeed={importSeed}
-              accountSettingsShowed={accountSettingsShowed}
+              generalSettingsShowed={generalSettingsShowed}
               handleCloseSettings={handleCloseSettings}
-              showSettings={showAccountSettings}
+              showSettings={showGeneralSettings}
+              showNetworkSettings={showNetworkSettings}
               isUnlocked={isUnlocked}
+              encriptedMnemonic={encriptedMnemonic}
+              networkSettingsShowed={networkSettingsShowed}
             />
-          )}
-        </>
-      )}
+
+            {accountHeader && (
+              <AccountHeader
+                encriptedMnemonic={encriptedMnemonic}
+                importSeed={importSeed}
+                accountSettingsShowed={accountSettingsShowed}
+                handleCloseSettings={handleCloseSettings}
+                showSettings={showAccountSettings}
+                isUnlocked={isUnlocked}
+              />
+            )}
+          </>
+        )}
+      </div>
     </div>
   )
 }

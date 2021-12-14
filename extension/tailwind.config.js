@@ -19,6 +19,9 @@ module.exports = {
       right: {
         '5percent': '5%'
       },
+      margin: {
+        '0.8': '0.2rem'
+      },
       maxWidth: {
         popup: '600px',
         input: '18rem',
@@ -43,6 +46,13 @@ module.exports = {
       },
       backgroundImage: {
         primary: 'linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0)), linear-gradient(30deg, rgba(255, 62, 145, 0.8) 20%, #4d76b8 50%)'
+      },
+      fontFamily: {
+        'poppins': 'Poppins',
+        'rubik': 'Rubik'
+      },
+      fontSize: {
+        'xxs': '0.01px'
       }
     },
   },

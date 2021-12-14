@@ -1,81 +1,140 @@
 import { Icon } from 'components/Icon';
-import React, { FC, useEffect, useState } from 'react';
+import { IconButton } from 'components/IconButton';
+import { useFormat } from 'hooks/index';
+import React, { FC, useCallback, Fragment } from 'react';
+import { Assets, Transaction } from 'scripts/types';
 
 interface IPanelList {
-  dataFAke: any;
+  data: any;
   assets: boolean;
   activity: boolean;
 }
 
 export const PanelList: FC<IPanelList> = ({
-  dataFAke,
+  data,
   assets = false,
   activity = false,
 }) => {
-  const [status, setStatus] = useState<string>('');
+  const {
+    formatDistanceDate,
+    ellipsis,
+    formatCurrency
+  } = useFormat();
+
+  const isShowedGroupBar = useCallback(
+    (tx: Transaction, idx: number) => {
+      return (
+        idx === 0 ||
+        new Date(tx.blockTime * 1e3).toDateString() !==
+        new Date(data[idx - 1].blockTime * 1e3).toDateString()
+      );
+    },
+    [data]
+  );
+
+  const getTxType = (tx: Transaction) => {
+    if (tx.tokenType === "SPTAssetActivate") {
+      return 'SPT creation';
+    }
+
+    if (tx.tokenType === "SPTAssetSend") {
+      return 'SPT mint';
+    }
+
+    if (tx.tokenType === "SPTAssetUpdate") {
+      return 'SPT update';
+    }
+
+    return 'Transaction';
+  }
 
   return (
     <div>
       {activity && (
-        <ul>
-          <div className="bg-brand-navydarker text-sm text-center">
-            17-09-21
-          </div>
-          {dataFAke.map((data) => {
+        <ul className="pb-4">
+          {data.map((tx: Transaction, idx: number) => {
+            const isConfirmed = tx.confirmations > 0;
+            const timestamp = new Date(tx.blockTime * 1000).toLocaleTimeString(navigator.language, {
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+
             return (
-              <li className="border-dashed border-b border-gray-200 py-2">
-                <div className="flex text-xs">
-                  <div>
-                    <p>{data.account}</p>
-                    <p className="text-yellow-300">{data.status}</p>
+              <Fragment key={tx.txid}>
+                {isShowedGroupBar(tx, idx) && (
+                  <li
+                    className="bg-brand-navydarker text-sm text-center my-3"
+                  >
+                    {formatDistanceDate(new Date(tx.blockTime * 1000).toDateString())}
+                  </li>
+                )}
+
+                <li
+                  className="border-dashed border-b border-gray-600 py-2"
+                >
+                  <div className="flex justify-between pr-6 text-xs">
+                    <div>
+                      <p>{ellipsis(String(tx.txid), 4, 14)}</p>
+
+                      <p
+                        className="text-yellow-300"
+                      >
+                        {isConfirmed ? 'Confirmed' : 'Pending'}
+                      </p>
+                    </div>
+
+                    <div className="flex justify-self-end">
+                      <div className="mr-12">
+                        <p className="text-blue-300">
+                          {timestamp}
+                        </p>
+
+                        <p>{getTxType(tx)}</p>
+                      </div>
+
+                      <IconButton className="w-1">
+                        <Icon
+                          name="select"
+                          className="text-base"
+                        />
+                      </IconButton>
+                    </div>
                   </div>
-                  <div className="pl-16">
-                    <p className="text-blue-300">{data.hour}</p>
-                    <p>{data.stp}</p>
-                  </div>
-                  <div className="pl-20 leading-8">
-                    <button className="w-1" type="submit">
-                      <Icon
-                        name="select"
-                        className="text-base"
-                        maxWidth={'1'}
-                      ></Icon>
-                    </button>
-                  </div>
-                </div>
-              </li>
+                </li>
+              </Fragment>
             );
           })}
         </ul>
       )}
 
       {assets && (
-        <ul>
-          {dataFAke.map((data) => {
-            return (
-              <li className="border-dashed border-b border-gray-200 py-2">
-                <div className="flex text-xs">
-                  <div>
-                    <p>{data.idk}</p>
-                  </div>
-                  <div className="pl-8">
-                    <p>{data.value}</p>
-                  </div>
-                  <div className="pl-8 text-blue-300">
-                    <p>{data.idk2}</p>
-                  </div>
-                  <div className="pl-20">
-                    <button className="w-1" type="submit">
-                      <Icon
-                        name="select"
-                        className="text-base inline-flex self-center"
-                        maxWidth={'1'}
-                      ></Icon>
-                    </button>
-                  </div>
-                </div>
-              </li>
-            );
+        <ul className="pb-4">
+          {data.map((asset: Assets) => {
+            if (asset.assetGuid) {
+              return (
+                <li
+                  key={asset.assetGuid}
+                  className="border-dashed border-b border-gray-600 py-4 flex justify-between items-center text-xs"
+                >
+                  <p className="font-rubik">
+                    {formatCurrency(String(asset.balance / 10 ** asset.decimals), asset.decimals)}
+
+                    <span className="font-poppins">
+                      {`  ${asset.symbol}`}
+                    </span>
+                  </p>
+
+                  <IconButton>
+                    <Icon
+                      name="arrow-up"
+                      className="w-4 bg-brand-gray200 text-brand-navy"
+                    />
+                  </IconButton>
+                </li>
+              );
+            }
+
+            return null;
           })}
         </ul>
       )}
