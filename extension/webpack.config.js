@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
-
 const webpack = require('webpack');
-const ZipPlugin = require('zip-webpack-plugin');
+const FilemanagerPlugin = require('filemanager-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -30,7 +27,7 @@ const extensionReloaderPlugin =
         contentScript: 'contentScript',
         background: 'background',
         inpage: 'inpage',
-        extensionPage: ['popup', 'options'],
+        extensionPage: ['popup'],
         trezorScript: 'trezorScript'
       },
     })
@@ -64,13 +61,12 @@ module.exports = {
 
   entry: {
     manifest: path.join(__dirname, 'manifest.json'),
-    webextension: path.join(__dirname, 'node_modules','webextension-polyfill-ts', 'lib/index.js'),
+    webextension: path.join(__dirname, 'node_modules', 'webextension-polyfill-ts', 'lib/index.js'),
     background: path.join(sourcePath, 'scripts/Background', 'index.ts'),
     inpage: path.join(sourcePath, 'scripts/ContentScript', 'inpage.ts'),
     contentScript: path.join(sourcePath, 'scripts/ContentScript', 'index.ts'),
     trezorScript: path.join(sourcePath, 'vendor', 'trezor-content-script.js'),
     app: path.join(sourcePath, 'pages/App', 'index.tsx'),
-    options: path.join(sourcePath, 'pages/Options', 'index.tsx'),
     trezorUSB: path.join(sourcePath, 'vendor', 'trezor-usb-permissions.js')
   },
 
@@ -113,37 +109,62 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
-        test: /\.(js|ts)x?$/,
-        loader: 'babel-loader',
-        exclude: /node_modules/,
-      },
-      {
         test: /\.(jpg|png|svg)x?$/,
         loader: 'file-loader',
         exclude: /node_modules/,
       },
       {
+        test: /\.(js|ts)x?$/,
+        loader: 'babel-loader',
+        exclude: /node_modules/,
+      },
+
+      {
+        test: /\.less$/,
+        use: [{
+          loader: 'style-loader'
+        }, {
+          loader: 'css-loader'
+        }, {
+          loader: 'less-loader',
+          options: {
+            lessOptions: {
+              modifyVars: {
+                'primary-color': '#1DA57A',
+                'link-color': '#1DA57A',
+                'border-radius-base': '2rem',
+              },
+              javascriptEnabled: true,
+            },
+          }
+        }]
+      },
+
+      {
         test: /\.(sa|sc|c)ss$/,
         use: [
           {
-            loader: 'style-loader', // It creates a CSS file per JS file which contains CSS
+            loader: MiniCssExtractPlugin.loader, // It creates a CSS file per JS file which contains CSS
           },
           {
             loader: 'css-loader', // Takes the CSS files and returns the CSS with imports and url(...) for Webpack
             options: {
-              import: true,
               sourceMap: true,
-              modules: {
-                localIdentName: '[name]__[local]___[hash:base64:5]',
-              },
             },
           },
           {
-            loader: 'postcss-loader', // For autoprefixer
+            loader: 'postcss-loader',
             options: {
-              ident: 'postcss',
-              // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-              plugins: [require('autoprefixer')()],
+              postcssOptions: {
+                plugins: [
+                  [
+                    'autoprefixer',
+                    {
+                      // Options
+                    },
+                  ],
+                ],
+              },
             },
           },
           'resolve-url-loader', // Rewrites relative paths in url() statements
@@ -177,34 +198,37 @@ module.exports = {
       template: path.join(viewsPath, 'app.html'),
       inject: 'body',
       chunks: ['app'],
+      hash: true,
       filename: 'app.html',
-    }),
-    new HtmlWebpackPlugin({
-      template: path.join(viewsPath, 'options.html'),
-      inject: 'body',
-      chunks: ['options'],
-      filename: 'options.html',
     }),
     new HtmlWebpackPlugin({
       template: path.join(viewsPath, 'trezor-usb-permissions.html'),
       filename: 'trezor-usb-permissions.html',
       chunks: ['trezorUSB'],
     }),
+    new HtmlWebpackPlugin({
+      template: path.join(viewsPath, 'app.html'),
+      inject: 'body',
+      chunks: ['app'],
+      filename: 'app.html',
+    }),
     // write css file(s) to build folder
     new MiniCssExtractPlugin({ filename: 'css/[name].css' }),
     // copy static assets
-    new CopyWebpackPlugin([{ from: 'source/assets', to: 'assets' }]),
+    new CopyWebpackPlugin({
+      patterns: [{ from: 'source/assets', to: 'assets' }],
+    }),
     // plugin to enable browser reloading in development mode
     extensionReloaderPlugin,
   ],
 
   optimization: {
+    minimize: false,
     minimizer: [
       new TerserPlugin({
-        cache: true,
         parallel: true,
         terserOptions: {
-          output: {
+          format: {
             comments: false,
           },
         },
@@ -215,10 +239,19 @@ module.exports = {
           preset: ['default', { discardComments: { removeAll: true } }],
         },
       }),
-      new ZipPlugin({
-        path: destPath,
-        extension: `${getExtensionFileType(targetBrowser)}`,
-        filename: `${targetBrowser}`,
+      new FilemanagerPlugin({
+        events: {
+          onEnd: {
+            archive: [
+              {
+                format: 'zip',
+                source: path.join(destPath, targetBrowser),
+                destination: `${path.join(destPath, targetBrowser)}.${getExtensionFileType(targetBrowser)}`,
+                options: { zlib: { level: 6 } },
+              },
+            ],
+          },
+        },
       }),
     ],
   },

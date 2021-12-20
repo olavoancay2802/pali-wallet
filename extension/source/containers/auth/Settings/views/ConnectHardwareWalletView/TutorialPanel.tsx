@@ -1,10 +1,6 @@
 import * as React from 'react';
 import { FC, useCallback, useState } from 'react';
-import clsx from 'clsx';
-import GoTopIcon from '@material-ui/icons/VerticalAlignTop';
-import IconButton from '@material-ui/core/IconButton';
-
-import styles from './index.scss';
+import { Icon, IconButton } from 'components/index';
 
 const TutorialPanel: FC = () => {
   const [isShowed, setShowed] = useState<boolean>(false);
@@ -30,22 +26,21 @@ const TutorialPanel: FC = () => {
 
   return (
     <section
-      className={clsx(styles.activity, { [styles.expanded]: isShowed })}
       onScroll={handleScroll}
     >
       {!isShowed ? (
-        <div className={styles.wrapper}>
-          <div className={styles.heading}>
-            <p style={{ cursor: 'pointer' }} onClick={handleGoBottom}>
+        <div>
+          <div>
+            <p onClick={handleGoBottom}>
               Learn more
             </p>
           </div>
         </div>
       ) : (
-        <div className={styles.heading}>
+        <div>
           <p>Learn more</p>
-          <IconButton className={styles.goTop} onClick={handleGoTop}>
-            <GoTopIcon />
+          <IconButton type="primary" shape="circle" onClick={handleGoTop}>
+            <Icon name="vertical-align" className="w-4 bg-brand-graydark100 text-brand-white" />
           </IconButton>
         </div>
       )}

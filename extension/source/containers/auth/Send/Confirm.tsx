@@ -1,41 +1,28 @@
 import React, { useState } from 'react';
-import clsx from 'clsx';
-import { useSelector } from 'react-redux';
-import Header from 'containers/common/Header';
-import Layout from 'containers/common/Layout';
-import Button from 'components/Button';
-import Spinner from '@material-ui/core/CircularProgress';
-import { useController } from 'hooks/index';
-import { useFiat } from 'hooks/usePrice';
-import { useHistory } from 'react-router-dom';
-import UpArrowIcon from '@material-ui/icons/ArrowUpward';
-import { RootState } from 'state/store';
-import IWalletState, { IAccountState } from 'state/wallet/types';
-import { useAlert } from 'react-alert';
+import { Header } from 'containers/common/Header';
+import { Layout } from 'containers/common/Layout';
+import { Button, Icon } from 'components/index';;
+import { useController, useFiat, useStore, useUtils, useFormat } from 'hooks/index';
+import { IAccountState } from 'state/wallet/types';
 import { browser } from 'webextension-polyfill-ts';
 
-import { ellipsis, formatURL } from '../helpers';
-import { getHost } from '../../../scripts/Background/helpers';
-
-import styles from './Confirm.scss';
 import { useEffect } from 'react';
 import { Assets } from 'scripts/types';
 
-const SendConfirm = () => {
+export const SendConfirm = () => {
   const controller = useController();
   const getFiatAmount = useFiat();
-  const history = useHistory();
-  const alert = useAlert();
 
-  const { accounts, activeAccountId, tabs, confirmingTransaction }: IWalletState = useSelector(
-    (state: RootState) => state.wallet
-  );
-  const { currentSenderURL } = tabs;
+  const { alert, getHost, history } = useUtils();
+  const { ellipsis, formatURL } = useFormat();
+  const { accounts, activeAccountId, currentSenderURL, confirmingTransaction } = useStore();
+
   const connectedAccount = accounts.find((account: IAccountState) => {
     return account.connectedTo.find((url: any) => {
       return url === getHost(currentSenderURL);
     });
   });
+  
   const sysExplorer = controller.wallet.account.getSysExplorerSearch();
   const { tempTx } = controller.wallet.account.getTransactionItem();
   const [confirmed, setConfirmed] = useState<boolean>(false);
@@ -167,43 +154,40 @@ const SendConfirm = () => {
   }
 
   return confirmed ? (
-    <Layout title="Your transaction is underway" linkTo="/remind" showLogo>
+    <Layout title="Your transaction is underway">
       <div className="body-description">
         You can follow your transaction under activity on your account screen.
       </div>
       <Button
         type="button"
-        theme="btn-gradient-primary"
-        variant={styles.next}
-        linkTo="/home"
         onClick={confirmingTransaction ? handleClosePopup : goHome}
       >
         Next
       </Button>
     </Layout>
   ) : (
-    <div className={styles.wrapper}>
-      <Header backLink="/send" />
-      <section className={styles.subheading}>Confirm</section>
-      <section className={styles.txAmount}>
-        <div className={styles.iconWrapper}>
-          <UpArrowIcon />
+    <div >
+      <Header/>
+      <section >Confirm</section>
+      <section >
+        <div >
+          <Icon name="arrow-up" className="w-4 bg-brand-graydark100 text-brand-white" />
         </div>
         {tempTx?.isToken && tokenData && tokenData?.symbol ? `${String(tempTx.amount)} ${String(tokenData?.symbol)}` : `${(tempTx?.amount || 0) + (tempTx?.fee || 0)} SYS`}
       </section>
-      <section className={styles.transaction}>
-        <div className={styles.row}>
+      <section >
+        <div>
           <p>From</p>
           <span>
             {confirmingTransaction && connectedAccount ? connectedAccount?.label : accounts.find(element => element.id === activeAccountId)!.label || ''} (
             {ellipsis(tempTx!.fromAddress)})
           </span>
         </div>
-        <div className={styles.row}>
+        <div>
           <p>To</p>
           <span>{tempTx!.toAddress}</span>
         </div>
-        <div className={styles.row}>
+        <div>
           <p>Transaction fee</p>
           <span>
             {tempTx!.fee} SYS (≈ {getFiatAmount(tempTx?.fee || 0, 8)})
@@ -211,7 +195,7 @@ const SendConfirm = () => {
         </div>
         {tempTx?.isToken && tokenData && (
           <div>
-            <div className={styles.row}>
+            <div>
               <p>Token being sent</p>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                 <span>
@@ -224,8 +208,8 @@ const SendConfirm = () => {
           </div>
         )}
       </section>
-      <section className={styles.confirm}>
-        <div className={styles.row}>
+      <section>
+        <div>
           <p>Max total</p>
           <span>
             {!tempTx?.isToken ? getFiatAmount(
@@ -236,34 +220,27 @@ const SendConfirm = () => {
         </div>
 
         {confirmingTransaction && (
-          <div className={styles.row}>
+          <div>
             <span style={{ fontSize: '14px', margin: '0px' }}>Confirm transaction on {currentSenderURL}?</span>
           </div>
         )}
 
-        <div className={styles.actions}>
+        <div>
           <Button
             type="button"
-            theme="btn-outline-secondary"
-            variant={clsx(styles.button, styles.close)}
             onClick={confirmingTransaction ? handleCancelTransactionOnSite : handleCancel}
-            linkTo="/home"
           >
             Cancel
           </Button>
 
           <Button
             type="submit"
-            theme="btn-outline-primary"
-            variant={styles.button}
             onClick={handleConfirm}
           >
-            {loading ? <Spinner size={15} className={styles.spinner} /> : 'Confirm'}
+            {loading ? <Icon name="loading" className="w-4 bg-brand-graydark100 text-brand-white" /> : 'Confirm'}
           </Button>
         </div>
       </section>
     </div>
   );
 };
-
-export default SendConfirm;

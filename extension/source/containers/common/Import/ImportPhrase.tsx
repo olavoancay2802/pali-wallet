@@ -1,12 +1,8 @@
 import React, { FC, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import * as yup from 'yup';
-import Layout from 'containers/common/Layout';
-import TextInput from 'components/TextInput';
-import Button from 'components/Button';
+import { Layout } from 'containers/common/Layout';
 import { useController } from 'hooks/index';
-
-import styles from './ImportPhrase.scss';
+import { Button } from 'components/index';
+import { Form, Input } from 'antd';
 
 interface IImportPhrase {
   onRegister: () => void;
@@ -14,52 +10,65 @@ interface IImportPhrase {
 
 const ImportPhrase: FC<IImportPhrase> = ({ onRegister }) => {
   const controller = useController();
-  const { handleSubmit, register } = useForm({
-    validationSchema: yup.object().shape({
-      phrase: yup.string().required(),
-    }),
-  });
-  const [isValid, setIsValid] = useState<boolean>(true);
+
+  const [seedIsValid, setSeedIsValid] = useState<boolean>(false);
 
   const onSubmit = (data: any) => {
     if (controller.wallet.importPhrase(data.phrase)) {
       onRegister();
-    } else {
-      setIsValid(false);
     }
   };
 
   return (
-    <Layout title="Let's import your wallet" linkTo="/app.html" importSeed={true}>
-      <form className={styles.importForm} onSubmit={handleSubmit(onSubmit)}>
-        <span>Paste your wallet seed phrase below:</span>
-        <TextInput
-          type="text"
+    <Layout onlySection title="Import wallet">
+      <Form
+        name="import"
+        labelCol={{ span: 8 }}
+        wrapperCol={{ span: 8 }}
+        initialValues={{ remember: true }}
+        onFinish={onSubmit}
+        autoComplete="off"
+        className="flex items-center flex-col gap-4 mt-8"
+      >
+        <Form.Item
           name="phrase"
-          visiblePassword
-          multiline
-          fullWidth
-          inputRef={register}
-          variant={styles.input}
-        />
+          className="text-blue"
+          rules={[
+            {
+              required: true,
+              message: ''
+            },
+            ({ }) => ({
+              validator(_, value) {
+                setSeedIsValid(controller.wallet.importPhrase(value));
 
-        {!isValid && <span>Seed phrase is not valid.</span>}
+                if (controller.wallet.importPhrase(value)) {
+                  return Promise.resolve();
+                }
 
-        <span>
-          Importing your wallet seed will automatically import a wallet
-          associated with this seed phrase.
+                return Promise.reject('Seed phrase is not valid');
+              },
+            }),
+          ]}
+        >
+          <Input
+            placeholder="Paste your wallet seed phrase"
+            className="mb-2 text-xs w-72 h-24 rounded-md text-center bg-brand-navydarker border border-brand-navymedium text-brand-white outline-none focus:border-brand-navylight"
+          />
+        </Form.Item>
+
+        <span className="font-light text-brand-royalBlue text-xs mx-12 mt-12 pb-12 text-center">
+          Importing your wallet seed automatically import a wallet associated with this seed phrase.
         </span>
 
-        <div className={styles.actions}>
-          <Button
-            type="submit"
-            theme="btn-gradient-primary"
-            variant={styles.button}
-          >
-            Import
-          </Button>
-        </div>
-      </form>
+        <Button
+          classNameBorder="absolute bottom-12"
+          type="submit"
+          disabled={!seedIsValid}
+        >
+          Import
+        </Button>
+      </Form>
     </Layout>
   );
 };

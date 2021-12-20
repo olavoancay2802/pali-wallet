@@ -19,6 +19,11 @@
     "storage",
     "notifications"
   ],
+  "options_ui": {
+    "page": "app.html",
+    "open_in_tab": true,
+    "__chrome__chrome_style": false
+  },
   "content_security_policy": "script-src 'self'; object-src 'self'",
   "__chrome|firefox__author": "Pollum Sys Teams",
   "__opera__developer": {
@@ -42,12 +47,6 @@
     "default_title": "Pali Wallet",
     "__chrome|opera__chrome_style": false,
     "__firefox__browser_style": false
-  },
-  "__chrome|opera__options_page": "options.html",
-  "options_ui": {
-    "page": "options.html",
-    "open_in_tab": true,
-    "__chrome__chrome_style": false
   },
   "background": {
     "scripts": [
@@ -87,7 +86,7 @@
   "commands": {
     "_execute_browser_action": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Y"
+        "default": "Ctrl+Shift+P"
       }
     }
   }

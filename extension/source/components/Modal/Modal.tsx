@@ -1,13 +1,5 @@
 import React, { FC } from 'react';
-import { browser } from 'webextension-polyfill-ts';
-import { useSelector } from 'react-redux';
-import { RootState } from 'state/store';
-import IWalletState from 'state/wallet/types';
-
-import { getHost } from '../../scripts/Background/helpers';
-import { ellipsis, formatURL } from '../../containers/auth/helpers';
-
-import styles from './Modal.scss';
+import { useFormat, useUtils, useBrowser, useStore } from 'hooks/index';
 
 interface IModal {
   callback?: any;
@@ -16,11 +8,12 @@ interface IModal {
   title: any;
 }
 
-const Modal: FC<IModal> = ({ title, message, connected, callback }) => {
-  const { accounts }: IWalletState = useSelector(
-    (state: RootState) => state.wallet
-  );
-
+export const Modal: FC<IModal> = ({ title, message, connected, callback }) => {
+  const { accounts } = useStore();
+  const { ellipsis, formatURL } = useFormat();
+  const { getHost } = useUtils();
+  const { browser } = useBrowser();
+  
   const handleDisconnect = (id: number) => {
     browser.runtime.sendMessage({
       type: 'RESET_CONNECTION_INFO',
@@ -35,8 +28,8 @@ const Modal: FC<IModal> = ({ title, message, connected, callback }) => {
   });
 
   return (
-    <div className={connected ? styles.modal : styles.modalNotConnected}>
-      <div className={styles.title}>
+    <div>
+      <div>
         <small>{formatURL(title)}</small>
 
         {connected && (
@@ -49,7 +42,7 @@ const Modal: FC<IModal> = ({ title, message, connected, callback }) => {
       <p>{message}</p>
 
       {!connected && (
-        <div className={styles.close}>
+        <div>
           <button
             type="button"
             onClick={() => callback()
@@ -63,8 +56,8 @@ const Modal: FC<IModal> = ({ title, message, connected, callback }) => {
         <div>
           {connectedAccounts.map((item) => {
             return (
-              <div className={styles.account} key={item.id}>
-                <div className={styles.data}>
+              <div key={item.id}>
+                <div >
                   <p>{item.label}</p>
                   <small>{ellipsis(item.address.main)}</small>
                 </div>
@@ -86,7 +79,7 @@ const Modal: FC<IModal> = ({ title, message, connected, callback }) => {
             );
           })}
 
-          <div className={styles.permissions}>
+          <div>
             <p>Permissions</p>
 
             <div>
@@ -101,7 +94,7 @@ const Modal: FC<IModal> = ({ title, message, connected, callback }) => {
             </div>
           </div>
 
-          <div className={styles.close}>
+          <div>
             <button
               type="button"
               onClick={() => callback()
@@ -114,5 +107,3 @@ const Modal: FC<IModal> = ({ title, message, connected, callback }) => {
     </div>
   );
 };
-
-export default Modal;

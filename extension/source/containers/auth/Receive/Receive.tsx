@@ -1,71 +1,68 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useController , useCopyClipboard } from 'hooks/index';
-import clsx from 'clsx';
+import { useController, useUtils, useStore } from 'hooks/index';
 import QRCode from 'qrcode.react';
-import IconButton from '@material-ui/core/IconButton';
-import CopyIcon from '@material-ui/icons/FileCopy';
-import Header from 'containers/common/Header';
-import { RootState } from 'state/store';
-import IWalletState from 'state/wallet/types';
-import Spinner from '@material-ui/core/CircularProgress';
+import { IconButton, Icon } from 'components/index';
+import { Header } from 'containers/common/Header';
 
-import styles from './Receive.scss';
-
-const WalletReceive = () => {
+export const Receive = () => {
+  const { useCopyClipboard, history } = useUtils();
   const [isCopied, copyText] = useCopyClipboard();
   const controller = useController();
   const [loaded, setLoaded] = useState<boolean>(false);
-  const { accounts, activeAccountId }: IWalletState = useSelector(
-    (state: RootState) => state.wallet
-  );
+  const { accounts, activeAccountId } = useStore();
 
   useEffect(() => {
-    const setup = async () => {
+    const getNewAddress = async () => {
       if (await controller.wallet.getNewAddress()) {
         setLoaded(true);
       }
     }
 
-    setup();
+    getNewAddress();
   }, []);
 
   return (
-    <div className={styles.wrapper}>
-      <Header backLink="/home" showName={false}/>
-      <section className={styles.subheading}>Receive SYS</section>
-      <section className={styles.content}>
+    <div className="bg-brand-gray">
+      <Header normalHeader />
+      <IconButton
+        type="primary"
+        shape="circle"
+        onClick={() => history.push('/home')}
+      >
+        <Icon name="arrow-left" className="w-4 bg-brand-graydark100 text-brand-white" />
+      </IconButton>
+      <section>Receive SYS</section>
+
+      <section>
         {loaded ? (
           <div>
-            <div className={styles.address}>
+            <div>
               <QRCode
                 value={accounts.find(element => element.id === activeAccountId)!.address.main}
                 bgColor="#fff"
                 fgColor="#000"
-                className={styles.qrcode}
                 size={180}
               />
               {accounts.find(element => element.id === activeAccountId)!.address.main}
             </div>
-            <div className={styles.copy}>
+            <div>
               <IconButton
-                className={clsx(styles.iconBtn, { [styles.active]: isCopied })}
+                type="primary"
+                shape="circle"
                 onClick={() =>
                   copyText(accounts.find(element => element.id === activeAccountId)!.address.main)
                 }
               >
-                <CopyIcon className={styles.icon} />
+                <Icon name="copy" className="w-4 bg-brand-graydark100 text-brand-white" />
               </IconButton>
-              <span className={clsx({ [styles.active]: isCopied })}>
+              <span>
                 {isCopied ? 'Copied address' : 'Copy'}
               </span>
             </div>
           </div>
-        ) : <Spinner classes={{ root: styles.spinner }} />}
+        ) : <Icon name="loading" className="w-4 bg-brand-graydark100 text-brand-white" />}
 
       </section>
     </div>
   );
 };
-
-export default WalletReceive;

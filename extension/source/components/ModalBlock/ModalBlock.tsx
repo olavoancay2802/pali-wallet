@@ -1,19 +1,6 @@
 import React, { FC, useState, useEffect } from 'react';
-import clsx from 'clsx';
-import DownArrowIcon from '@material-ui/icons/ExpandMore';
-import {
-  ellipsis,
-  formatDistanceDate,
-  formatURL,
-} from 'containers/auth/helpers';
-import { CircularProgress } from '@material-ui/core';
-import { useController, useCopyClipboard } from 'hooks/index';
-import { useAlert } from 'react-alert';
-import IWalletState from 'state/wallet/types';
-import { RootState } from 'state/store';
-import { useSelector } from 'react-redux';
-
-import styles from './ModalBlock.scss';
+import { useController, useStore, useUtils, useFormat } from 'hooks/index';
+import { Icon } from 'components/index';
 
 interface IModalBlock {
   assetTx?: any;
@@ -26,7 +13,7 @@ interface IModalBlock {
   txType?: any;
 }
 
-const ModalBlock: FC<IModalBlock> = ({
+export const ModalBlock: FC<IModalBlock> = ({
   title,
   message,
   callback,
@@ -37,11 +24,10 @@ const ModalBlock: FC<IModalBlock> = ({
   txType,
 }) => {
   const controller = useController();
-  const alert = useAlert();
 
-  const { activeNetwork }: IWalletState = useSelector(
-    (state: RootState) => state.wallet
-  );
+  const { activeNetwork } = useStore();
+  const { useCopyClipboard, alert } = useUtils();
+  const { ellipsis, formatDistanceDate, formatURL } = useFormat();
 
   const [expanded, setExpanded] = useState<boolean>(false);
   const [newExpanded, setNewExpanded] = useState<boolean>(false);
@@ -166,7 +152,7 @@ const ModalBlock: FC<IModalBlock> = ({
 
     return assetTransaction.map(({ label, value }: any) => {
       return (
-        <div key={label} className={styles.flexCenter}>
+        <div key={label}>
           <p>{label}</p>
           <b>{value}</b>
         </div>
@@ -217,7 +203,7 @@ const ModalBlock: FC<IModalBlock> = ({
 
     return txData.map(({ label, value }: any) => {
       return (
-        <div key={label} className={styles.flexCenter}>
+        <div key={label}>
           <p>{label}</p>
           <b>{value}</b>
         </div>
@@ -228,7 +214,7 @@ const ModalBlock: FC<IModalBlock> = ({
   const renderAddresses = (list: any) => {
     return Object.values(list).map(({ address, value }: any) => {
       return (
-        <li key={address} className={styles.option}>
+        <li key={address}>
           <p onClick={() => copyText(address)}>{ellipsis(address) || '...'}</p>
           <small>{formatURL(String(Number(value) / 10 ** 8), 18) ? formatURL(String(Number(value) / 10 ** 8), 18) : 0}   {activeNetwork === 'main' ? 'SYS' : 'tSYS'}</small>
         </li>
@@ -237,8 +223,8 @@ const ModalBlock: FC<IModalBlock> = ({
   };
 
   return (
-    <div className={styles.modal}>
-      <div className={styles.title}>
+    <div >
+      <div>
         <small>{title}</small>
 
         <p onClick={() => setCallback()}>
@@ -259,7 +245,7 @@ const ModalBlock: FC<IModalBlock> = ({
 
       {tx && !assetTx ? (
         <div>
-          <div className={styles.transaction}>
+          <div>
             <div
               style={{
                 display: 'flex',
@@ -267,75 +253,62 @@ const ModalBlock: FC<IModalBlock> = ({
                 alignItems: 'center',
               }}
             >
-              <div className={styles.select}>
+              <div>
                 <div
-                  className={clsx(styles.fullselect, {
-                    [styles.expanded]: newExpanded,
-                  })}
                 >
                   <span
                     onClick={() => setNewExpanded(!newExpanded)}
-                    className={styles.selected}
                   >
                     <p>From</p>
-                    <DownArrowIcon className={styles.arrow} />
+                    <Icon name="arrow-down" className="w-4 bg-brand-gold text-brand-white" />
                   </span>
 
-                  <ul className={styles.options}>
+                  <ul>
                     {renderAddresses(newSenders)}
                   </ul>
                 </div>
               </div>
 
-              <div className={styles.select}>
+              <div >
                 <div
-                  className={clsx(styles.fullselect, {
-                    [styles.expanded]: expanded,
-                  })}
                 >
                   <span
                     onClick={() => setExpanded(!expanded)}
-                    className={styles.selected}
                   >
                     <p>To</p>
-                    <DownArrowIcon className={styles.arrow} />
+                    <Icon name="arrow-dowm"  className="w-4 bg-brand-gold text-brand-white" />
                   </span>
 
-                  <ul className={styles.options}>
+                  <ul>
                     {renderAddresses(newRecipients)}
                   </ul>
                 </div>
               </div>
             </div>
 
-            <div className={styles.data}>
+            <div>
               <h2>Transaction</h2>
 
               {renderTxData(tx)}
 
-              <div className={styles.select}>
+              <div>
                 <div
-                  className={clsx(styles.fullselect, {
-                    [styles.expanded]: tokensExpanded,
-                  })}
                 >
                   <span
                     onClick={() => setTokensExpanded(!tokensExpanded)}
-                    className={styles.selected}
                   >
                     <p>Assets</p>
-                    <DownArrowIcon className={styles.arrow} />
+                    <Icon name="arrow-down" className="w-4 bg-brand-gold text-brand-white" />
                   </span>
 
                   <ul
-                    className={styles.options}
                     style={{ padding: '0 .5rem', margin: '0 1rem 1rem' }}
                   >
                     {tx.tokenTransfers &&
                       tx.tokenTransfers.map(
                         (tokenTransfer: any, index: number) => {
                           return (
-                            <div key={index} className={styles.flexCenter}>
+                            <div key={index}>
                               <p>
                                 {tokenTransfer.symbol
                                   ? atob(tokenTransfer.symbol)
@@ -355,15 +328,15 @@ const ModalBlock: FC<IModalBlock> = ({
 
           <p>{message}</p>
 
-          <div className={styles.close}>
+          <div >
             <button onClick={() => callback()}>Go</button>
           </div>
         </div>
       ) : (
         <div>
           {assetTx && !tx ? (
-            <div className={styles.transaction} style={{ marginTop: '2rem' }}>
-              <div className={styles.data} style={{ height: '342px' }}>
+            <div >
+              <div >
                 <h2>
                   Asset {assetTx.assetGuid} -{' '}
                   {assetTx.symbol ? atob(String(assetTx.symbol)) : ''}
@@ -374,17 +347,14 @@ const ModalBlock: FC<IModalBlock> = ({
 
               <p>{message}</p>
 
-              <div className={styles.close}>
+              <div>
                 <button onClick={() => callback()}>Go</button>
               </div>
             </div>
           ) : (
             <div
-              className={clsx(styles.mask, {
-                [styles.hide]: tx,
-              })}
             >
-              <CircularProgress className={styles.loader} />
+              <Icon name="loading" className="w-4 bg-brand-gray text-brand-darktransparent" />
             </div>
           )}
         </div>
@@ -392,5 +362,3 @@ const ModalBlock: FC<IModalBlock> = ({
     </div>
   );
 };
-
-export default ModalBlock;

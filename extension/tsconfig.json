@@ -17,7 +17,7 @@
     "noResolve": false,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "noImplicitReturns": false,
     "baseUrl": ".",
     "paths": {
@@ -58,6 +58,7 @@
   },
   "include": [
     "source",
-    "webpack.config.ts"
+    "webpack.config.ts",
+    "cypress"
   ]
 }

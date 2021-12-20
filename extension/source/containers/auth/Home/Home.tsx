@@ -1,45 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import clsx from 'clsx';
-import { useSelector } from 'react-redux';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Spinner from '@material-ui/core/CircularProgress';
-import IconButton from '@material-ui/core/IconButton';
-import RefreshIcon from '@material-ui/icons/Refresh';
-import Header from 'containers/common/Header';
-import Button from 'components/Button';
-import FullSelect from 'components/FullSelect';
-import Modal from 'components/Modal';
-import ModalBlock from 'components/ModalBlock';
-import { useController } from 'hooks/index';
-import { useFiat } from 'hooks/usePrice';
-import { RootState } from 'state/store';
-import IWalletState from 'state/wallet/types';
-import { browser } from 'webextension-polyfill-ts';
+import { Icon, ModalBlock } from 'components/index';
+import { useController, useStore, useFiat, useFormat, useUtils } from 'hooks/index';
 
-import { formatNumber } from '../helpers';
-import { getHost } from '../../../scripts/Background/helpers';
+import { Header } from 'containers/common/Header';
+import { TxsPanel } from './TxsPanel';
 
-import TxsPanel from './TxsPanel';
-import styles from './Home.scss';
+import { Button } from 'antd';
 
-const Home = () => {
+export const Home = () => {
   const controller = useController();
   const getFiatAmount = useFiat();
+  const { history } = useUtils();
+  const { formatNumber } = useFormat();
 
   const {
     accounts,
     activeAccountId,
-    tabs,
     changingNetwork,
     activeNetwork,
-  }: IWalletState = useSelector((state: RootState) => state.wallet);
-  const { currentURL } = tabs;
+  } = useStore();
 
-  const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
   const [openBlockExplorer, setOpenBlockExplorer] = useState<boolean>(false);
   const [openAssetBlockExplorer, setOpenAssetBlockExplorer] =
     useState<boolean>(false);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
   const [txidSelected, setTxidSelected] = useState('');
   const [assetSelected, setAssetSelected] = useState(-1);
   const [txType, setTxType] = useState('');
@@ -47,25 +30,6 @@ const Home = () => {
   const sysExplorer = controller.wallet.account.getSysExplorerSearch();
   const [tx, setTx] = useState(null);
   const [assetTx, setAssetTx] = useState(null);
-  const [currentTabURL, setCurrentTabURL] = useState<string>(currentURL);
-
-  useEffect(() => {
-    browser.windows.getAll({ populate: true }).then((windows) => {
-      for (const window of windows) {
-        const views = browser.extension.getViews({ windowId: window.id });
-
-        if (views) {
-          browser.tabs
-            .query({ active: true, currentWindow: true })
-            .then((tabs) => {
-              setCurrentTabURL(String(tabs[0].url));
-            });
-
-          return;
-        }
-      }
-    });
-  }, [!controller.wallet.isLocked()]);
 
   const handleRefresh = () => {
     controller.wallet.account.getLatestUpdate();
@@ -91,23 +55,6 @@ const Home = () => {
     }
   }, [!controller.wallet.isLocked(), accounts.length > 0]);
 
-  useEffect(() => {
-    const acc = accounts.find((element) => element.id === activeAccountId);
-
-    if (acc && acc.connectedTo !== undefined) {
-      if (acc.connectedTo.length > 0) {
-        setIsConnected(
-          acc.connectedTo.findIndex((url: any) => {
-            return url == getHost(currentTabURL);
-          }) > -1
-        );
-        return;
-      }
-
-      setIsConnected(false);
-    }
-  }, [accounts, activeAccountId, currentTabURL]);
-
   const handleOpenExplorer = (txid: string) => {
     window.open(`${sysExplorer}/tx/${txid}`);
   };
@@ -115,23 +62,12 @@ const Home = () => {
   const handleOpenAssetExplorer = (assetGuid: number) => {
     window.open(`${sysExplorer}/asset/${assetGuid}`);
   };
-
-  const handleSetModalIsOpen = () => {
-    setIsOpenModal(!isOpenModal);
-  };
+  
 
   return (
-    <div className={styles.wrapper}>
-      {isOpenModal && (
-        <div
-          className={styles.background}
-          onClick={() => setIsOpenModal(false)}
-        />
-      )}
-
+    <div>
       {openBlockExplorer && (
         <div
-          className={styles.background}
           onClick={() => {
             setOpenBlockExplorer(false);
           }}
@@ -140,7 +76,6 @@ const Home = () => {
 
       {openAssetBlockExplorer && (
         <div
-          className={styles.background}
           onClick={() => {
             setOpenAssetBlockExplorer(false);
           }}
@@ -177,103 +112,60 @@ const Home = () => {
         />
       )}
 
-      {accounts.find((element) => element.id === activeAccountId) ? (
+
+      {/* you can use this code instead the below (just need to put some style)
+{accounts.find((element) => element.id === activeAccountId) ? (
         <>
-          <Header showLogo showName={false} />
-          <section className={styles.account}>
-            {accounts.length > 1 ? (
-              <FullSelect
-                value={String(activeAccountId)}
-                options={accounts}
-                onChange={(val: string) => {
-                  controller.wallet.switchWallet(Number(val));
-                  controller.wallet.account.watchMemPool(accounts[Number(val)]);
-                }}
-              />
-            ) : (
-              accounts.find((element) => element.id === activeAccountId)?.label
-            )}
-          </section>
-          <section className={styles.center}>
-            {isConnected ? (
-              <small
-                className={styles.connected}
-                onClick={() => setIsOpenModal(!isOpenModal)}
-              >
-                Connected
-              </small>
-            ) : (
-              <small
-                className={styles.notConnected}
-                onClick={() => setIsOpenModal(!isOpenModal)}
-              >
-                Not connected
-              </small>
-            )}
+          <Header accountHeader />
 
-            {isOpenModal && isConnected && (
-              <Modal
-                title={currentTabURL}
-                connected
-                callback={handleSetModalIsOpen}
-              />
-            )}
-
-            {isOpenModal && !isConnected && (
-              <Modal
-                title={currentTabURL}
-                message="This account is not connected to this site. To connect to a sys platform site, find the connect button on their site."
-                callback={handleSetModalIsOpen}
-              />
-            )}
-
-            {changingNetwork ? (
-              <Spinner size={25} className={styles.spinner} />
-            ) : (
-              <h3>
-                {formatNumber(
-                  accounts.find((element) => element.id === activeAccountId)
-                    ?.balance || 0
-                )}{' '}
-                <small>{activeNetwork == 'testnet' ? 'TSYS' : 'SYS'}</small>
-              </h3>
-            )}
-
-            {changingNetwork ? (
-              <p style={{ color: 'white' }}>...</p>
-            ) : (
-              <small style={{ marginTop: '5px', marginBottom: '5px' }}>
-                {activeNetwork !== 'testnet'
-                  ? getFiatAmount(
+          <section className="flex justify-center items-center flex-col gap-4 text-brand-white bg-brand-green">
+            <div className="bg-brand-white text-brand-deepPink100 font-bold">
+              {changingNetwork ? (
+                <>
+                  <Icon name="loading" className="w-4 bg-brand-gray200 text-brand-navy" />
+                  <p style={{ color: 'white' }}>...</p>
+                </>
+              ) : (
+                <>
+                  <h3>
+                    {formatNumber(
                       accounts.find((element) => element.id === activeAccountId)
                         ?.balance || 0
-                    )
-                  : ''}
-              </small>
-            )}
+                    )}{' '}
+                    <small>{activeNetwork == 'testnet' ? 'TSYS' : 'SYS'}</small>
+                  </h3>
+                  <small style={{ marginTop: '5px', marginBottom: '5px' }}>
+                    {activeNetwork !== 'testnet'
+                      ? getFiatAmount(
+                        accounts.find((element) => element.id === activeAccountId)
+                          ?.balance || 0
+                      )
+                      : ''}
+                  </small>
+                </>
+              )}
+            </div>
 
-            <IconButton className={styles.refresh} onClick={handleRefresh}>
-              <RefreshIcon />
+            <IconButton onClick={handleRefresh} type="primary" shape="circle">
+              <Icon name="reload" className="bg-brand-gray200 text-brand-navy w-4" />
             </IconButton>
-            <div className={styles.actions}>
+
+            <div >
               <Button
                 type="button"
-                theme="btn-outline-secondary"
-                variant={styles.button}
-                linkTo="/send"
+                onClick={() => history.push('/send')}
               >
                 Send
               </Button>
               <Button
                 type="button"
-                theme="btn-outline-primary"
-                variant={styles.button}
-                linkTo="/receive"
+                onClick={() => history.push('/receive')}
               >
                 Receive
               </Button>
             </div>
           </section>
+
           <TxsPanel
             getTransactionAssetData={getTransactionAssetData}
             getTransactionData={getTransactionData}
@@ -304,17 +196,101 @@ const Home = () => {
         </>
       ) : (
         <section
-          className={clsx(styles.mask, {
-            [styles.hide]: accounts.find(
-              (element) => element.id === activeAccountId
-            ),
-          })}
         >
-          <CircularProgress className={styles.loader} />
+          <Icon name="loading" className="w-4 bg-brand-gray200 text-brand-navy" />
+        </section>
+      )} */}
+
+      {accounts.find((element) => element.id === activeAccountId) ? (
+        <>
+          <Header accountHeader />
+
+          <section className="flex items-center flex-col gap-1 text-brand-white bg-brand-navydarker pb-14">
+            <button onClick={handleRefresh} className="ml-3 pl-72 w-1">
+              <Icon name="reload" className="inline-flex self-center text-lg" maxWidth={"1"} />
+            </button>
+
+            {changingNetwork ? (
+              <Icon name="loading" className="w-4 bg-brand-gray200 text-brand-navy" />
+            ) : (
+              <div className="flex justify-center">
+                <p className="text-5xl flex-1 font-medium">
+                  {formatNumber(
+                    accounts.find((element) => element.id === activeAccountId)
+                      ?.balance || 5268
+                  )}{' '}
+                </p>
+                <p className="flex-1 self-end pl-0.5">{activeNetwork == 'testnet' ? 'TSYS' : 'SYS'}</p>
+              </div>
+
+            )}
+
+            {changingNetwork ? (
+              <p className="text-royalBlue">...</p>
+            ) : (
+              <small className="mt-1.5 mb-1.5 text-brand-royalblue">
+                {activeNetwork !== 'testnet'
+                  ? getFiatAmount(
+                    accounts.find((element) => element.id === activeAccountId)
+                      ?.balance || 0
+                  )
+                  : ''}
+              </small>
+            )}
+            <div className="pt-8"> 
+              <Button
+                className="inline-flex bg-brand-navydarker rounded-l-full border border-brand-deepPink tracking-normal text-base py-1 px-6 cursor-pointer mr-px hover:bg-brand-deepPink"
+                onClick={() => history.push('/send')}
+              
+              >
+                <Icon name="arrow-up" className="inline-flex self-center text-sm pr-1 text-brand-deepPink" rotate={40} />
+                  Send
+              </Button>
+              <Button
+                className="inline-flex bg-brand-navydarker rounded-r-full border border-brand-royalBlue tracking-normal text-base py-1 px-6 cursor-pointer ml-px hover:bg-brand-royalBlue"
+                onClick={() => history.push('/receive')}
+              >
+                <Icon name="arrow-down" className="inline-flex self-center text-sm pr-1 text-brand-royalBlue" />
+                
+                  Receive
+              </Button>
+            </div>
+          </section>
+
+          <TxsPanel
+            getTransactionAssetData={getTransactionAssetData}
+            getTransactionData={getTransactionData}
+            setTx={setTx}
+            setAssetTx={setAssetTx}
+            setAssetType={setAssetType}
+            setTxType={setTxType}
+            txidSelected={txidSelected}
+            setTxidSelected={setTxidSelected}
+            setAssetSelected={setAssetSelected}
+            openBlockExplorer={openBlockExplorer}
+            setOpenBlockExplorer={setOpenBlockExplorer}
+            openAssetBlockExplorer={openAssetBlockExplorer}
+            setOpenAssetBlockExplorer={setOpenAssetBlockExplorer}
+            address={
+              accounts.find((element) => element.id === activeAccountId)
+                ?.address.main || 'no addr'
+            }
+            transactions={
+              accounts.find((element) => element.id === activeAccountId)
+                ?.transactions || []
+            }
+            assets={
+              accounts.find((element) => element.id === activeAccountId)
+                ?.assets || []
+            }
+          />
+        </>
+      ) : (
+        <section
+        >
+          <Icon name="loading" className="w-4 bg-brand-gray200 text-brand-navy" />
         </section>
       )}
     </div>
   );
 };
-
-export default Home;

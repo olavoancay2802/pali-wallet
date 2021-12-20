@@ -1,99 +1,95 @@
-import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import Button from 'components/Button';
-import TextInput from 'components/TextInput';
-import CheckIcon from '@material-ui/icons/CheckCircle';
-import { useForm } from 'react-hook-form';
-import { useController } from 'hooks/index';
-import { useSelector } from 'react-redux';
-import { RootState } from 'state/store';
-import IWalletState from 'state/wallet/types';
-
-import Layout from '../Layout';
-
-import * as consts from './consts';
-import styles from './CreatePass.scss';
+import React from 'react';
+import { useController, useStore, useUtils } from 'hooks/index';
+import { Form, Input } from 'antd';
+import { Button } from 'components/index';
+import { Layout } from '../../common/Layout';
 
 const CreatePass = () => {
-  const history = useHistory();
   const controller = useController();
-  const [passed, setPassed] = useState<boolean>(false);
-  const { handleSubmit, register, errors } = useForm({
-    validationSchema: consts.schema,
-  });
-  const title = passed ? consts.CREATE_PASS_TITLE2 : consts.CREATE_PASS_TITLE1;
-  const comment = passed
-    ? consts.CREATE_PASS_COMMENT2
-    : consts.CREATE_PASS_COMMENT1;
 
-  const { tabs }: IWalletState = useSelector(
-    (state: RootState) => state.wallet
-  );
-
-  const nextHandler = () => {
-    if (passed) {
-      controller.wallet.createWallet(true);
-
-      if (tabs.canConnect) {
-        history.push('/connect-wallet');
-      } else {
-        history.push('/home');
-      }
-    }
-  };
+  const { canConnect } = useStore();
+  const { history } = useUtils();
 
   const onSubmit = (data: any) => {
     controller.wallet.setWalletPassword(data.password);
-    setPassed(true);
+    controller.wallet.createWallet(true);
+
+    if (canConnect) {
+      history.push('/connect-wallet');
+    } else {
+      history.push('/home');
+    }
   };
 
   return (
-    <Layout title={title} linkTo="/app.html">
-      <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-        {passed ? (
-          <CheckIcon className={styles.checked} />
-        ) : (
-          <>
-            <TextInput
-              type="password"
-              placeholder="Please enter at least 8 characters"
-              fullWidth
-              name="password"
-              visiblePassword
-              inputRef={register}
-              variant={styles.pass}
-            />
-            <TextInput
-              type="password"
-              placeholder="Please enter your password again"
-              fullWidth
-              name="repassword"
-              inputRef={register}
-              visiblePassword
-              variant={styles.repass}
-            />
-            <span className={styles.warning}>
-              At least 8 characters, 1 lower-case, 1 numeral.
-            </span>
-            {(errors.password || errors.repassword) && (
-              <span className={styles.error}>
-                {errors.password
-                  ? errors.password.message
-                  : errors.repassword.message}
-              </span>
-            )}
-          </>
-        )}
-        <span className={`body-comment ${styles.comment}`}>{comment}</span>
+    <Layout
+      title="Password"
+      onlySection
+    >
+      <Form
+        name="basic"
+        labelCol={{ span: 8 }}
+        wrapperCol={{ span: 8 }}
+        initialValues={{ remember: true }}
+        onFinish={onSubmit}
+        autoComplete="off"
+        className="flex justify-center items-center flex-col gap-4 mt-8 text-center"
+      >
+        <Form.Item
+          name="password"
+          hasFeedback
+          rules={[
+            {
+              required: true,
+              message: ''
+            },
+            {
+              pattern: /^(?=.*[a-z])(?=.*[0-9])(?=.{8,})/,
+              message: ''
+            }
+          ]}
+        >
+          <Input.Password placeholder="New password (min 8 chars)" />
+        </Form.Item>
+
+        <Form.Item
+          name="repassword"
+          dependencies={['password']}
+          hasFeedback
+          rules={[
+            {
+              required: true,
+              message: ''
+            },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (!value || getFieldValue('password') === value) {
+                  return Promise.resolve();
+                }
+
+                return Promise.reject('');
+              },
+            }),
+          ]}
+        >
+          <Input.Password placeholder="Confirm password" />
+        </Form.Item>
+
+        <span className="font-light text-brand-graylight text-xs">
+          At least 8 characters, 1 lower-case and 1 numeral.
+        </span>
+
+        <span className="text-center font-light text-brand-royalBlue text-xs mx-10">
+          Do not forget to save your password. You will need this password to unlock your wallet.
+        </span>
+
         <Button
-          type={passed ? 'button' : 'submit'}
-          theme="btn-gradient-primary"
-          variant={styles.next}
-          onClick={nextHandler}
+          type="submit"
+          classNameBorder="absolute bottom-12"
         >
           Next
         </Button>
-      </form>
+      </Form>
     </Layout>
   );
 };

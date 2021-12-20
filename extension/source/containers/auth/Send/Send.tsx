@@ -1,220 +1,183 @@
 import * as React from 'react';
 import {
-  ChangeEvent,
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
+  // ChangeEvent,
+  // useState,
+  // useCallback,
+  // useMemo,
+  // useEffect,
   FC,
 } from 'react';
-import clsx from 'clsx';
-import * as yup from 'yup';
-import { useHistory } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { useSelector } from 'react-redux';
-import { useAlert } from 'react-alert';
-import Header from 'containers/common/Header';
-import Button from 'components/Button';
-import Switch from "react-switch";
-import TextInput from 'components/TextInput';
-import VerifiedIcon from 'assets/images/svg/check-green.svg';
-import Close from 'assets/images/svg/cancel.svg';
-import { useController } from 'hooks/index';
-import { useFiat } from 'hooks/usePrice';
-import IWalletState from 'state/wallet/types';
-import { RootState } from 'state/store';
-import ReactTooltip from 'react-tooltip';
-import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
-import DownArrowIcon from '@material-ui/icons/ExpandMore';
-import Spinner from '@material-ui/core/CircularProgress';
-import { Assets } from '../../../scripts/types';
+import { Header } from 'containers/common/Header';
+// import { Button, IconButton, Icon } from 'components/index';;
+// import { useController, useFiat, useStore, useUtils } from 'hooks/index';
+// import { Assets } from 'scripts/types';
+// import { Form, Input } from 'antd';
 
-import styles from './Send.scss';
-
-interface IWalletSend {
+interface ISend {
   initAddress?: string;
 }
-const WalletSend: FC<IWalletSend> = ({ initAddress = '' }) => {
-  const { handleSubmit, register, errors } = useForm({
-    validationSchema: yup.object().shape({
-      address: yup.string().required('Error: Invalid SYS address'),
-      amount: yup.number().moreThan(0).required('Error: Invalid SYS Amount'),
-      fee: yup.number().required('Error: Invalid transaction fee')
-    }),
-  });
-  const history = useHistory();
-  const getFiatAmount = useFiat();
-  const controller = useController();
-  const alert = useAlert();
-  const { accounts, activeAccountId, activeNetwork, changingNetwork }: IWalletState = useSelector(
-    (state: RootState) => state.wallet
-  );
-  const [address, setAddress] = useState<string>(initAddress);
-  const [amount, setAmount] = useState<string>('');
-  const [fee, setFee] = useState<string>('0.00001');
-  const [recommend, setRecommend] = useState<number>(0);
-  const [checked, setChecked] = useState<boolean>(false);
-  const [selectedAsset, setSelectedAsset] = useState<Assets | null>(null);
-  const [expanded, setExpanded] = useState<boolean>(false);
-  const [verification, setVerification] = useState<boolean>(true);
+export const Send: FC<ISend> = (/*{ initAddress = '' }*/) => {
+  // // const getFiatAmount = useFiat();
+  // const controller = useController();
+  // const { alert, history } = useUtils();
+  // const { accounts, activeAccountId, activeNetwork, changingNetwork } = useStore();
+  
+  // const [address, setAddress] = useState<string>(initAddress);
+  // const [amount, setAmount] = useState<string>('');
+  // const [fee, setFee] = useState<string>('0.00001');
+  // const [recommend, setRecommend] = useState<number>(0);
+  // const [checked, setChecked] = useState<boolean>(false);
+  // const [selectedAsset, setSelectedAsset] = useState<Assets | null>(null);
+  // const [expanded, setExpanded] = useState<boolean>(false);
 
-  const isValidAddress = useMemo(() => {
-    return controller.wallet.account.isValidSYSAddress(address, activeNetwork, verification);
-  }, [address]);
+  // const onSubmit = (data: any) => {
+  //   const {
+  //     address,
+  //     amount,
+  //     fee
+  //   } = data;
 
-  const addressInputClass = clsx(styles.input, styles.address, {
-    [styles.verified]: isValidAddress || (address && !isValidAddress),
-  });
+  //   if (Number(fee) > 0.1) {
+  //     alert.removeAll();
+  //     alert.error(`Error: Fee too high, maximum 0.1 SYS`, { timeout: 2000 });
 
-  const statusIconClass = clsx(styles.statusIcon, {
-    [styles.hide]: !isValidAddress,
-  });
+  //     return;
+  //   }
 
-  const onSubmit = (data: any) => {
-    if (!isValidAddress) {
-      alert.removeAll();
-      alert.error('Error: Invalid recipient address');
+  //   if (selectedAsset) {
+  //     try {
+  //       controller.wallet.account.updateTempTx({
+  //         fromAddress: accounts.find(element => element.id === activeAccountId)!.address.main,
+  //         toAddress: address,
+  //         amount: Number(amount - fee),
+  //         fee,
+  //         token: selectedAsset.assetGuid,
+  //         isToken: true,
+  //         rbf: !checked,
+  //       });
 
-      return;
-    }
+  //       history.push('/send/confirm');
+  //     } catch (error) {
+  //       alert.removeAll();
+  //       alert.error('An internal error has occurred.');
+  //     }
 
-    const {
-      address,
-      amount,
-      fee
-    } = data;
+  //     return;
+  //   }
 
-    if (Number(fee) > 0.1) {
-      alert.removeAll();
-      alert.error(`Error: Fee too high, maximum 0.1 SYS`, { timeout: 2000 });
+  //   controller.wallet.account.updateTempTx({
+  //     fromAddress: accounts.find(element => element.id === activeAccountId)!.address.main,
+  //     toAddress: address,
+  //     amount: Number(amount - fee),
+  //     fee,
+  //     token: null,
+  //     isToken: false,
+  //     rbf: true,
+  //   });
 
-      return;
-    }
+  //   history.push('/send/confirm');
+  // };
 
-    if (selectedAsset) {
-      try {
-        controller.wallet.account.updateTempTx({
-          fromAddress: accounts.find(element => element.id === activeAccountId)!.address.main,
-          toAddress: address,
-          amount,
-          fee,
-          token: selectedAsset.assetGuid,
-          isToken: true,
-          rbf: !checked,
-        });
+  // const handleAmountChange = useCallback(
+  //   (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  //     setAmount(event.target.value);
+  //   },
+  //   []
+  // );
 
-        history.push('/send/confirm');
-      } catch (error) {
-        alert.removeAll();
-        alert.error('An internal error has occurred.');
-      }
+  // const handleFeeChange = useCallback(
+  //   (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  //     setFee(event.target.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1'));
 
-      return;
-    }
+  //     if (Number(event.target.value) > 0.1) {
+  //       alert.removeAll();
+  //       alert.error(`Error: Fee too high, maximum 0.1 SYS.`, { timeout: 2000 });
 
-    controller.wallet.account.updateTempTx({
-      fromAddress: accounts.find(element => element.id === activeAccountId)!.address.main,
-      toAddress: address,
-      amount,
-      fee,
-      token: null,
-      isToken: false,
-      rbf: true,
-    });
+  //       return;
+  //     }
+  //   },
+  //   []
+  // );
 
-    history.push('/send/confirm');
-  };
+  // const handleAddressChange = useCallback(
+  //   (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  //     setAddress(event.target.value.trim());
+  //   },
+  //   []
+  // );
 
-  const handleAmountChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setAmount(event.target.value);
-    },
-    []
-  );
+  // const handleTypeChanged = useCallback(
+  //   (
+  //     checked: boolean
+  //   ) => {
+  //     setChecked(checked);
+  //   },
+  //   []
+  // )
 
-  const handleFeeChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setFee(event.target.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1'));
+  // const handleGetFee = () => {
+  //   controller.wallet.account.getRecommendFee().then((response: any) => {
+  //     setRecommend(response);
+  //     setFee(response.toString());
+  //   });
+  // };
 
-      if (Number(event.target.value) > 0.1) {
-        alert.removeAll();
-        alert.error(`Error: Fee too high, maximum 0.1 SYS.`, { timeout: 2000 });
+  // const handleAssetSelected = (item: any) => {
+  //   const selectedAsset = accounts.find(element => element.id === activeAccountId)!.assets.filter((asset: Assets) => asset.assetGuid == item);
 
-        return;
-      }
-    },
-    []
-  );
+  //   if (selectedAsset[0]) {
+  //     setSelectedAsset(selectedAsset[0]);
 
-  const handleAddressChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setAddress(event.target.value.trim());
-    },
-    []
-  );
+  //     return;
+  //   }
 
-  const handleTypeChanged = useCallback(
-    (
-      checked: boolean
-    ) => {
-      setChecked(checked);
-    },
-    []
-  )
+  //   setSelectedAsset(null);
+  // };
 
-  const handleAddressTypeChanged = useCallback(
-    (
-      checked: boolean
-    ) => {
-      setVerification(checked);
-    },
-    []
-  )
+  // useEffect(handleGetFee, []);
 
-  const handleGetFee = () => {
-    controller.wallet.account.getRecommendFee().then((response: any) => {
-      setRecommend(response);
-      setFee(response.toString());
-    });
-  };
+  // const checkAssetBalance = () => {
+  //   return Number(selectedAsset ?
+  //     (selectedAsset.balance / 10 ** selectedAsset.decimals).toFixed(selectedAsset.decimals) :
+  //     accounts.find(element => element.id === activeAccountId)!.balance.toFixed(8))
+  // }
 
-  const handleAssetSelected = (item: any) => {
-    const selectedAsset = accounts.find(element => element.id === activeAccountId)!.assets.filter((asset: Assets) => asset.assetGuid == item);
-
-    if (selectedAsset[0]) {
-      setSelectedAsset(selectedAsset[0]);
-
-      return;
-    }
-
-    setSelectedAsset(null);
-  };
-
-  useEffect(handleGetFee, []);
-
-  const checkAssetBalance = () => {
-    return Number(selectedAsset ?
-      (selectedAsset.balance / 10 ** selectedAsset.decimals).toFixed(selectedAsset.decimals) :
-      accounts.find(element => element.id === activeAccountId)!.balance.toFixed(8))
-  }
-
-  const showAssetBalance = () => {
-    return (selectedAsset ?
-      (selectedAsset.balance / 10 ** selectedAsset.decimals).toFixed(selectedAsset.decimals) :
-      accounts.find(element => element.id === activeAccountId)!.balance.toFixed(8))
-  }
+  // const showAssetBalance = () => {
+  //   return (selectedAsset ?
+  //     (selectedAsset.balance / 10 ** selectedAsset.decimals).toFixed(selectedAsset.decimals) :
+  //     accounts.find(element => element.id === activeAccountId)!.balance.toFixed(8))
+  // }
 
   return (
-    <div className={styles.wrapper}>
-      <Header backLink="/home" showName={false} />
+    <div className="bg-brand-gray">
+      <Header normalHeader />
 
-      <form onSubmit={handleSubmit(onSubmit)} autoComplete="off">
-        <section className={styles.subheading}>Send {selectedAsset ? selectedAsset.symbol : "SYS"}</section>
-        <section className={styles.balance}>
+      <p>send component - replace with antd</p>
+
+      {/* <IconButton
+        type="primary"
+        shape="circle"
+        onClick={() => history.goBack()}
+      >
+        <Icon name="arrow-left" className="w-4 bg-brand-graydark100 text-brand-white" />
+      </IconButton>
+
+      <Form
+        name="basic"
+        labelCol={{ span: 8 }}
+        wrapperCol={{ span: 8 }}
+        initialValues={{ remember: true }}
+        onFinish={onSubmit}
+        autoComplete="off"
+        className="flex justify-center items-center flex-col gap-4 mt-8 text-center"
+      >
+        <section>Send {selectedAsset ? selectedAsset.symbol : "SYS"}</section>
+
+        <section>
           <div>
             Balance:{' '}
             {changingNetwork ? (
-              <Spinner size={20} className={styles.spinner} />
+              <Icon name="loading" className="w-4 bg-brand-graydark100 text-brand-white" />
             ) : (
               <span>{showAssetBalance()}</span>
             )}
@@ -225,287 +188,142 @@ const WalletSend: FC<IWalletSend> = ({ initAddress = '' }) => {
           </div>
         </section>
 
-        <section className={styles.content}>
-          <ul className={styles.form}>
-            <li className={styles.item}>
-              <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <label htmlFor="address">Recipient Address</label>
-                </div>
+        <Form.Item
+          label="Recipient Address"
+          name="address"
+          hasFeedback
+          rules={[
+            {
+              required: true,
+              message: ''
+            },
+            ({ }) => ({
+              validator(_, value) {
+                if (controller.wallet.account.isValidSYSAddress(value, activeNetwork)) {
+                  return Promise.resolve();
+                }
 
-                <div style={{ columnGap: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label htmlFor="address">Verify address</label>
+                return Promise.reject('');
+              }
+            })
+          ]}
+        >
+          <Input placeholder="address" />
+        </Form.Item>
 
-                  <HelpOutlineIcon
-                    style={{ width: '17px', height: '17px' }}
-                    data-tip
-                    data-for="address_info"
-                  />
-                </div>
-              </div>
-
-              <img
-                src={VerifiedIcon}
-                alt="checked"
-                className={statusIconClass}
-              />
-
-              <img
-                src={Close}
-                alt="checked"
-                onClick={() => setAddress("")}
-                className={address && !isValidAddress ? styles.statusIsNotValidClass : styles.hideCloseIcon}
-              />
-
-              <TextInput
-                placeholder="Enter a valid address"
-                fullWidth
-                value={address}
-                name="address"
-                inputRef={register}
-                onChange={handleAddressChange}
-                variant={addressInputClass}
-              />
-
-              <li className={styles.item}>
-                <div className={styles.textBtn} style={{ top: '-49px' }}>
-                  <div >
-                    <div className={styles.tooltip}>
-                      <ReactTooltip id="address_info"
-                        getContent={() =>
-                          <div style={{ backgroundColor: 'white' }}>
-                            <small style={{ fontWeight: 'bold' }}>
-                              ON for enable verification (recommended): Pali verify that is a valid SYS address <br />
-                              OFF for disable address verification: only disable this verification if you are <br /> fully aware of what you are doing and if you trust the recipient address you want to send for.<br />
-                              <br />
-                            </small>
-                          </div>
-                        }
-                        backgroundColor="white"
-                        textColor="black"
-                        borderColor="#4d76b8"
-                        effect='solid'
-                        delayHide={300}
-                        delayShow={300}
-                        delayUpdate={300}
-                        place="top"
-                        border
-                        type="info"
-                        multiline
-                      />
-                    </div>
-                  </div>
-
-                  <Switch
-                    offColor="#1b2e4d"
-                    height={20}
-                    width={60}
-                    checked={verification}
-                    onChange={handleAddressTypeChanged}
-                  />
-                </div>
-
-              </li>
-            </li>
-
-            <div className={!selectedAsset ? styles.formBlockOne : styles.formBlock}>
-              <li className={!selectedAsset ? styles.noAssetItem : styles.item}>
-                <div
-                  className={styles.select}
-                  id="asset"
-                >
-                  <label
-                    htmlFor="asset"
-                    style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  >
-                    Choose Asset
-                  </label>
-                  <div
-                    className={clsx(styles.fullselect, { [styles.expanded]: expanded })}
-                    onClick={() => setExpanded(!expanded)}
-                  >
-                    <span className={styles.selected}>
-                      {selectedAsset?.symbol || "SYS"}
-                      <DownArrowIcon className={styles.arrow} />
-                    </span>
-                    <ul className={styles.options}>
-                      <li className={styles.option} onClick={() => handleAssetSelected(1)}>
-                        <p>SYS</p>
-                        <p>Native</p>
-                      </li>
-
-                      {accounts.find(element => element.id === activeAccountId)!.assets.map((item, index) => {
-                        if (!controller.wallet.account.isNFT(item.assetGuid)) {
-                          return (
-                            <li className={styles.option} key={index} onClick={() => handleAssetSelected(item.assetGuid)}>
-                              <p>{item.symbol}</p>
-                              <p>SPT</p>
-                            </li>
-                          )
-                        }
-
-                        return (
-                          <li className={styles.option} key={index} onClick={() => handleAssetSelected(item.assetGuid)}>
-                            <p>{item.symbol}</p>
-                            <p>NFT</p>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </div>
-                </div>
+        <Form.Item
+          label="Choose asset"
+          name="asset"
+          hasFeedback
+          rules={[
+            {
+              required: true,
+              message: ''
+            },
+          ]}
+        >
+          <div
+            onClick={() => setExpanded(!expanded)}
+          >
+            <span>
+              {selectedAsset?.symbol || "SYS"}
+              <Icon name="arrow-down" className="w-4 bg-brand-graydark100 text-brand-white" />
+            </span>
+            <ul >
+              <li onClick={() => handleAssetSelected(1)}>
+                <p>SYS</p>
+                <p>Native</p>
               </li>
 
-              <li className={!selectedAsset ? styles.noAsset : styles.item}>
-                <div className={styles.zDag}>
-                  <label htmlFor="rbf">Z-DAG</label>
+              {accounts.find(element => element.id === activeAccountId)!.assets.map((item, index) => {
+                if (!controller.wallet.account.isNFT(item.assetGuid)) {
+                  return (
+                    <li key={index} onClick={() => handleAssetSelected(item.assetGuid)}>
+                      <p>{item.symbol}</p>
+                      <p>SPT</p>
+                    </li>
+                  )
+                }
 
-                  <div className={styles.tooltip}>
-                    <HelpOutlineIcon
-                      style={{ width: '17px', height: '17px' }}
-                      data-tip
-                      data-for="zdag_info"
-                    />
-                    <ReactTooltip id="zdag_info"
-                      getContent={() =>
-                        <div style={{ backgroundColor: 'white' }}>
-                          <small style={{ fontWeight: 'bold' }}>
-                            OFF for Replace-by-fee (RBF) and ON for Z-DAG <br />
-                            Z-DAG: a exclusive Syscoin feature.<br />
-                            Z-DAG enable faster transactions but should not be used for high amounts
-                            <br />
-                            <strong>To know more:</strong>
-                            <span
-                              style={{ cursor: 'pointer' }}
-                              onClick={() => {
-                                window.open("https://syscoin.org/news/what-is-z-dag");
-                              }}
-                            >
-                              <a href=""> What is Z-DAG?</a>
-                            </span>
-                          </small>
-                        </div>
-                      }
-                      backgroundColor="white"
-                      textColor="black"
-                      borderColor="#4d76b8"
-                      effect='solid'
-                      delayHide={300}
-                      delayShow={300}
-                      delayUpdate={300}
-                      place="top"
-                      border
-                      type="info"
-                      multiline
-                    />
-                  </div>
-                </div>
+                return (
+                  <li key={index} onClick={() => handleAssetSelected(item.assetGuid)}>
+                    <p>{item.symbol}</p>
+                    <p>NFT</p>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        </Form.Item>
 
-                <Switch
-                  disabled={!selectedAsset}
-                  offColor="#333f52"
-                  height={20}
-                  width={60}
-                  checked={checked}
-                  onChange={handleTypeChanged}
-                />
-              </li>
+        <Form.Item
+          label="Asset amount"
+          name="amount"
+          hasFeedback
+          rules={[
+            {
+              required: true,
+              message: ''
+            },
+          ]}
+        >
+          <Input placeholder="amount" />
+          {accounts.find(element => element.id === activeAccountId)!.balance === 0 && <small >You don't have SYS available.</small>}
+          <Button
+            type="button"
+            onClick={() =>
+              setAmount(selectedAsset ? controller.wallet.account.isNFT(selectedAsset.assetGuid) ? String(selectedAsset.balance) : String((selectedAsset.balance / 10 ** selectedAsset.decimals).toFixed(selectedAsset.decimals)) : String(accounts.find(element => element.id === activeAccountId)!.balance))
+            }
+          >
+            Max
+          </Button>
+        </Form.Item>
+
+        <Form.Item
+          label="Fee"
+          name="fee"
+          hasFeedback
+          rules={[
+            {
+              required: true,
+              message: ''
+            },
+          ]}
+        >
+          <Input placeholder="fee" />
+          <div>
+            {`With current network conditions we recommend a fee of ${recommend} SYS.`}
+          </div>
+          <Button
+            type="button"
+            onClick={handleGetFee}
+          >
+            Recommend
+          </Button>
+        </Form.Item>
+      </Form> */}
+
+      {/* <form autoComplete="off">
+        <section >
+          <ul >
+            <div >
+              <span>
+                ≈ {!selectedAsset ? getFiatAmount(Number(amount) + Number(fee), 6) : getFiatAmount(Number(fee), 6)}
+              </span>
             </div>
 
             <div>
-              <li className={styles.item}>
-                <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label htmlFor="amount"> {selectedAsset ? selectedAsset.symbol : "SYS"} Amount</label>
-
-                  {accounts.find(element => element.id === activeAccountId)!.balance === 0 && <small className={styles.description} style={{ textAlign: 'left' }}>You don't have SYS available.</small>}
-                </div>
-
-                <TextInput
-                  type="number"
-                  placeholder="Enter amount to send"
-                  fullWidth
-                  inputRef={register}
-                  name="amount"
-                  value={amount}
-                  onChange={handleAmountChange}
-                  variant={clsx(styles.input, styles.amount)}
-                />
-
-                <Button
-                  type="button"
-                  variant={styles.textBtn}
-                  onClick={() =>
-                    setAmount(selectedAsset ? controller.wallet.account.isNFT(selectedAsset.assetGuid) ? String(selectedAsset.balance) : String((selectedAsset.balance / 10 ** selectedAsset.decimals).toFixed(selectedAsset.decimals)) : String(accounts.find(element => element.id === activeAccountId)!.balance))
-                  }
-                >
-                  Max
-                </Button>
-              </li>
-
-              <li className={styles.item}>
-                <label
-                  htmlFor="fee"
-                  style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                  Transaction Fee
-                </label>
-
-                <TextInput
-                  type="text"
-                  placeholder="Enter transaction fee"
-                  fullWidth
-                  inputRef={register}
-                  name="fee"
-                  title="Must be a integer or decimal number"
-                  onChange={handleFeeChange}
-                  value={fee}
-                  variant={clsx(styles.input, styles.fee)}
-                />
-
-                <Button
-                  type="button"
-                  variant={styles.textBtn}
-                  onClick={handleGetFee}
-                >
-                  Recommend
-                </Button>
-              </li>
-            </div>
-
-            <div className={styles.description}>
-              {`With current network conditions we recommend a fee of ${recommend} SYS.`}
-            </div>
-
-            <div className={styles.status}>
-              <span className={styles.equalAmount}>
-                ≈ {!selectedAsset ? getFiatAmount(Number(amount) + Number(fee), 6) : getFiatAmount(Number(fee), 6)}
-
-              </span>
-              {!!Object.values(errors).length && (
-                <span className={styles.error}>
-                  {Object.values(errors)[0].message}
-                </span>
-              )}
-            </div>
-
-            <div className={styles.actions}>
               <Button
                 type="button"
-                theme="btn-outline-secondary"
-                variant={clsx(styles.button, styles.close)}
-                linkTo="/home"
               >
                 Close
               </Button>
 
               <Button
                 type="submit"
-                theme="btn-outline-primary"
-                variant={styles.button}
                 disabled={
                   accounts.find(element => element.id === activeAccountId)!.balance === 0 ||
                   checkAssetBalance() < Number(amount) ||
-                  !isValidAddress ||
                   !amount ||
                   !fee ||
                   Number(fee) > 0.1 ||
@@ -518,9 +336,7 @@ const WalletSend: FC<IWalletSend> = ({ initAddress = '' }) => {
             </div>
           </ul>
         </section>
-      </form>
+      </form> */}
     </div>
   );
 };
-
-export default WalletSend;
